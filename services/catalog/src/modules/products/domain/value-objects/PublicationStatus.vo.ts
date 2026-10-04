@@ -1,4 +1,4 @@
-import { ValidationException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { ValidationException } from "@marketplace/common";
 
 export const PUBLICATION_STATUSES = ["DRAFT", "ACTIVE", "PAUSED", "SUSPENDED"] as const;
 export type PublicationStatus = (typeof PUBLICATION_STATUSES)[number];

@@ -1,4 +1,4 @@
-import { ValidationException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { ValidationException } from "@marketplace/common";
 import type { SearchResult } from "../../domain/models/SearchCriteria.js";
 import type { ProductSearchIndex } from "../../domain/repositories/ProductSearchIndex.js";
 import type { SearchProductsDto } from "../dtos/SearchProductsDto.js";

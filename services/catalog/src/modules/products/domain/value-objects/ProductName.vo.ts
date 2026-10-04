@@ -1,4 +1,4 @@
-import { ValidationException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { ValidationException } from "@marketplace/common";
 
 export class ProductName {
   private constructor(readonly value: string) {}

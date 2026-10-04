@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { Id } from "../../../../@shared/domain/value-objects/Id.vo.js";
+import type { Id } from "@marketplace/common";
 import type { Db } from "../../../../@shared/infrastructure/database/db.js";
 import { EmailAlreadyRegisteredException } from "../../domain/exceptions/EmailAlreadyRegisteredException.js";
 import type { User } from "../../domain/models/User.js";

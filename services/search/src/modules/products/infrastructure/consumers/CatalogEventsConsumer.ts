@@ -1,6 +1,6 @@
 import { TOPICS, parseCatalogEvent } from "@marketplace/contracts";
 import type { Consumer, Kafka } from "kafkajs";
-import type { Logger } from "../../../../@shared/infrastructure/logger.js";
+import type { Logger } from "@marketplace/common";
 import type { ProjectCatalogEventUseCase } from "../../application/use-cases/ProjectCatalogEventUseCase.js";
 
 export class CatalogEventsConsumer {

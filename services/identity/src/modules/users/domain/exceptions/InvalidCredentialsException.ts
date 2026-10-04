@@ -1,5 +1,5 @@
 // InvalidCredentialsException.ts
-import { UnauthorizedException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { UnauthorizedException } from "@marketplace/common";
 
 export class InvalidCredentialsException extends UnauthorizedException {
   constructor() {

@@ -1,4 +1,4 @@
-import { ValidationException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { ValidationException } from "@marketplace/common";
 
 export const ROLES = ["BUYER", "SELLER"] as const;
 export type Role = (typeof ROLES)[number];

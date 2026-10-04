@@ -1,7 +1,7 @@
 import { TOPICS } from "@marketplace/contracts";
 import { and, eq } from "drizzle-orm";
-import { ConflictException } from "../../../../@shared/domain/exceptions/DomainException.js";
-import type { Id } from "../../../../@shared/domain/value-objects/Id.vo.js";
+import { ConflictException } from "@marketplace/common";
+import type { Id } from "@marketplace/common";
 import type { Db } from "../../../../@shared/infrastructure/database/db.js";
 import { enqueueOutbox } from "../../../../@shared/infrastructure/outbox/OutboxWriter.js";
 import type { Product } from "../../domain/models/Product.js";

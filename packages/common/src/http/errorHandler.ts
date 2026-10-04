@@ -1,6 +1,6 @@
 import type { FastifyError, FastifyInstance } from "fastify";
 import { ZodError } from "zod";
-import { DomainException } from "../../domain/exceptions/DomainException.js";
+import { DomainException } from "../domain/exceptions/DomainException.js";
 
 const STATUS_BY_CODE: Record<string, number> = {
   VALIDATION_ERROR: 400,

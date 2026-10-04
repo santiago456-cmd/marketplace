@@ -1,5 +1,5 @@
 // EmailAlreadyRegisteredException.ts
-import { ConflictException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { ConflictException } from "@marketplace/common";
 
 export class EmailAlreadyRegisteredException extends ConflictException {
   constructor() {

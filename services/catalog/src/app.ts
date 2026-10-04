@@ -1,7 +1,7 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import type { Db } from "./@shared/infrastructure/database/db.js";
-import { registerErrorHandler } from "./@shared/infrastructure/http/errorHandler.js";
-import type { Logger } from "./@shared/infrastructure/logger.js";
+import { registerErrorHandler } from "@marketplace/common";
+import type { Logger } from "@marketplace/common";
 import { ArchiveProductUseCase } from "./modules/products/application/use-cases/ArchiveProductUseCase.js";
 import { CreateProductUseCase } from "./modules/products/application/use-cases/CreateProductUseCase.js";
 import { GetProductUseCase } from "./modules/products/application/use-cases/GetProductUseCase.js";

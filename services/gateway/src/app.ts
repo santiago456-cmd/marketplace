@@ -1,5 +1,5 @@
 import Fastify, { type FastifyInstance } from "fastify";
-import type { Logger } from "./@shared/infrastructure/logger.js";
+import type { Logger } from "@marketplace/common";
 import { JwtVerifier } from "./modules/auth/infrastructure/JwtVerifier.js";
 import { gatewayRoutes } from "./modules/routing/infrastructure/routes.js";
 

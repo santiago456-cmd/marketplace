@@ -1,4 +1,4 @@
-import { Id } from "../../../../@shared/domain/value-objects/Id.vo.js";
+import { Id } from "@marketplace/common";
 import { ProductNotFoundException } from "../../domain/exceptions/ProductNotFoundException.js";
 import type { ProductRepository } from "../../domain/repositories/ProductRepository.js";
 import { Stock } from "../../domain/value-objects/Stock.vo.js";

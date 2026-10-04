@@ -1,4 +1,4 @@
-import type { Id } from "../../../../@shared/domain/value-objects/Id.vo.js";
+import type { Id } from "@marketplace/common";
 import type { Product } from "../models/Product.js";
 
 export interface ProductRepository {

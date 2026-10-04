@@ -1,4 +1,4 @@
-import { ValidationException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { ValidationException } from "@marketplace/common";
 
 export const PRODUCT_CONDITIONS = ["NEW", "USED"] as const;
 export type ProductCondition = (typeof PRODUCT_CONDITIONS)[number];

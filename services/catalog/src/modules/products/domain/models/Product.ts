@@ -1,9 +1,9 @@
 import {
   BusinessRuleException,
   ValidationException,
-} from "../../../../@shared/domain/exceptions/DomainException.js";
-import { DateValue } from "../../../../@shared/domain/value-objects/DateValue.vo.js";
-import { Id } from "../../../../@shared/domain/value-objects/Id.vo.js";
+} from "@marketplace/common";
+import { DateValue } from "@marketplace/common";
+import { Id } from "@marketplace/common";
 import type { ProductDomainEvent } from "../events/ProductEvents.js";
 import { Price } from "../value-objects/Price.vo.js";
 import { type ProductCondition, parseProductCondition } from "../value-objects/ProductCondition.vo.js";

@@ -1,4 +1,4 @@
-import { ValidationException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { ValidationException } from "@marketplace/common";
 
 /** Monto en unidades menores (centavos) para evitar errores de punto flotante. */
 export class Price {

@@ -1,6 +1,6 @@
 import { readAuthUser } from "@marketplace/contracts";
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { UnauthorizedException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { UnauthorizedException } from "@marketplace/common";
 import type { GetCurrentUserUseCase } from "../../application/use-cases/GetCurrentUserUseCase.js";
 import type { LoginUseCase } from "../../application/use-cases/LoginUseCase.js";
 import type { RegisterUserUseCase } from "../../application/use-cases/RegisterUserUseCase.js";

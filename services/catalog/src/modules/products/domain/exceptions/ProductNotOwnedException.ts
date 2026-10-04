@@ -1,4 +1,4 @@
-import { ForbiddenException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { ForbiddenException } from "@marketplace/common";
 
 export class ProductNotOwnedException extends ForbiddenException {
   constructor(productId: string) {

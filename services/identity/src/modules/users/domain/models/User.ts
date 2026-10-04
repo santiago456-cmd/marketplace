@@ -1,5 +1,5 @@
-import { DateValue } from "../../../../@shared/domain/value-objects/DateValue.vo.js";
-import { Id } from "../../../../@shared/domain/value-objects/Id.vo.js";
+import { DateValue } from "@marketplace/common";
+import { Id } from "@marketplace/common";
 import { type Role, parseRoles } from "../value-objects/Role.vo.js";
 import { UserEmail } from "../value-objects/UserEmail.vo.js";
 import type { UserPrimitives } from "./UserPrimitives.js";

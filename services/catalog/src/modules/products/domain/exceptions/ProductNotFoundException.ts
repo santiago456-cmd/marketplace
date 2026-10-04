@@ -1,4 +1,4 @@
-import { NotFoundException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { NotFoundException } from "@marketplace/common";
 
 export class ProductNotFoundException extends NotFoundException {
   constructor(productId: string) {

@@ -1,5 +1,5 @@
 // UserNotFoundException.ts
-import { NotFoundException } from "../../../../@shared/domain/exceptions/DomainException.js";
+import { NotFoundException } from "@marketplace/common";
 
 export class UserNotFoundException extends NotFoundException {
   constructor(userId: string) {
