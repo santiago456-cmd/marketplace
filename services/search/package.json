@@ -1,0 +1,19 @@
+{
+  "name": "@marketplace/search-service",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_OPTIONS=--disable-warning=TimeoutNegativeWarning tsx watch --env-file=.env src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file=.env dist/server.js"
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "^8.19.2",
+    "@marketplace/common": "workspace:*",
+    "@marketplace/contracts": "workspace:*",
+    "fastify": "^5.12.5",
+    "kafkajs": "^2.2.4",
+    "zod": "^3.25.76"
+  }
+}
