@@ -14,7 +14,8 @@ interface OrderState {
   lines: OrderLine[];
   total: Money;
   status: OrderStatus;
-  rejectionReason: string | null;
+  statusReason: string | null;
+  paymentId: string | null;
   createdAt: DateValue;
 }
 
@@ -69,16 +70,23 @@ export class Order {
     return this.persistedVersion;
   }
 
+  get status(): OrderStatus {
+    return this.state.status;
+  }
+
   assertOwnedBy(userId: string): void {
     if (!this.state.buyerId.equals(Id.from(userId))) throw new OrderNotOwnedException(this.id);
   }
 
-  /** El stock quedó reservado. Idempotente: confirmar una orden ya confirmada no hace nada. */
+  /**
+   * El stock quedó reservado. Idempotente: una reentrega sobre una orden que ya avanzó
+   * (CONFIRMED, PAID, CANCELLED) no hace nada. Solo es contradictorio confirmar una REJECTED.
+   */
   confirm(): void {
-    if (this.state.status === "CONFIRMED") return;
-    if (this.state.status !== "CREATED") {
-      throw new BusinessRuleException(`No se puede confirmar una orden en estado ${this.state.status}`);
+    if (this.state.status === "REJECTED") {
+      throw new BusinessRuleException("No se puede confirmar una orden en estado REJECTED");
     }
+    if (this.state.status !== "CREATED") return;
     this.record({ type: "OrderConfirmed", occurredAt: DateValue.now().toISOString(), orderId: this.id });
   }
 
@@ -93,6 +101,28 @@ export class Order {
     this.record({ type: "OrderRejected", occurredAt: DateValue.now().toISOString(), orderId: this.id, reason: trimmed });
   }
 
+  /** El pago fue aprobado. Idempotente. Solo se paga una orden CONFIRMED. */
+  pay(paymentId: string): void {
+    if (this.state.status === "PAID") return;
+    if (this.state.status !== "CONFIRMED") {
+      throw new BusinessRuleException(`No se puede pagar una orden en estado ${this.state.status}`);
+    }
+    const id = paymentId.trim();
+    if (!id) throw new ValidationException("El identificador del pago es obligatorio");
+    this.record({ type: "OrderPaid", occurredAt: DateValue.now().toISOString(), orderId: this.id, paymentId: id });
+  }
+
+  /** El pago falló: la orden se cancela y Catalog repone el stock. Idempotente. */
+  cancel(reason: string): void {
+    if (this.state.status === "CANCELLED") return;
+    if (this.state.status !== "CONFIRMED") {
+      throw new BusinessRuleException(`No se puede cancelar una orden en estado ${this.state.status}`);
+    }
+    const trimmed = reason.trim();
+    if (!trimmed) throw new ValidationException("El motivo de la cancelación es obligatorio");
+    this.record({ type: "OrderCancelled", occurredAt: DateValue.now().toISOString(), orderId: this.id, reason: trimmed });
+  }
+
   pullEvents(): OrderDomainEvent[] {
     const pending = this.pending;
     this.pending = [];
@@ -105,7 +135,8 @@ export class Order {
       orderId: s.id.value,
       buyerId: s.buyerId.value,
       status: s.status,
-      rejectionReason: s.rejectionReason,
+      statusReason: s.statusReason,
+      paymentId: s.paymentId,
       lines: s.lines.map((l) => l.toSnapshot()),
       total: s.total.toPrimitives(),
       createdAt: s.createdAt.toISOString(),
@@ -128,7 +159,8 @@ export class Order {
           lines: event.lines.map((l) => OrderLine.from(l)),
           total: Money.from(event.total.amount, event.total.currency),
           status: "CREATED",
-          rejectionReason: null,
+          statusReason: null,
+          paymentId: null,
           createdAt: DateValue.from(event.occurredAt),
         };
         break;
@@ -136,7 +168,13 @@ export class Order {
         this.state = { ...this.state, status: "CONFIRMED" };
         break;
       case "OrderRejected":
-        this.state = { ...this.state, status: "REJECTED", rejectionReason: event.reason };
+        this.state = { ...this.state, status: "REJECTED", statusReason: event.reason };
+        break;
+      case "OrderPaid":
+        this.state = { ...this.state, status: "PAID", paymentId: event.paymentId };
+        break;
+      case "OrderCancelled":
+        this.state = { ...this.state, status: "CANCELLED", statusReason: event.reason };
         break;
     }
     this.history.push(event);

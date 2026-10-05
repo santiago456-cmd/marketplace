@@ -1,10 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { TOPICS, stockRejectedEvent, stockReservedEvent } from "@marketplace/contracts";
+import { TOPICS, stockRejectedEvent, stockReleasedEvent, stockReservedEvent } from "@marketplace/contracts";
 import { enqueueOutbox } from "@marketplace/outbox";
 import { asc, eq, inArray } from "drizzle-orm";
 import type { Db } from "../../../../@shared/infrastructure/database/db.js";
 import type { Product } from "../../domain/models/Product.js";
-import type { StockReservationRepository } from "../../domain/repositories/StockReservationRepository.js";
+import type {
+  ReleaseOutcome,
+  StockReservationRepository,
+} from "../../domain/repositories/StockReservationRepository.js";
 import { type ReservationLine, type ReservationOutcome, reserveAll } from "../../domain/services/StockReservation.js";
 import { ProductMapper } from "../mappers/ProductMapper.js";
 import { persistProduct } from "./persistProduct.js";
@@ -50,10 +53,53 @@ export class DrizzleStockReservationRepository implements StockReservationReposi
           .update(stockReservations)
           .set({ status: "REJECTED", reason: outcome.reason })
           .where(eq(stockReservations.orderId, orderId));
-        const event = stockRejectedEvent.parse({ ...base, type: "StockRejected", payload: { orderId, reason: outcome.reason } });
+        const event = stockRejectedEvent.parse({
+          ...base,
+          type: "StockRejected",
+          payload: { orderId, reason: outcome.reason },
+        });
         await enqueueOutbox(tx, TOPICS.CATALOG_INVENTORY, [event]);
       }
       return outcome;
+    });
+  }
+
+  async release(orderId: string): Promise<ReleaseOutcome> {
+    return this.db.transaction(async (tx) => {
+      // Bloquea la reserva: dos cancelaciones simultáneas de la misma orden se serializan acá.
+      const [reservation] = await tx
+        .select()
+        .from(stockReservations)
+        .where(eq(stockReservations.orderId, orderId))
+        .for("update");
+
+      if (!reservation || reservation.status === "REJECTED") return "NOTHING_TO_RELEASE";
+      if (reservation.status === "RELEASED") return "ALREADY_RELEASED";
+
+      const lines = reservation.lines as ReservationLine[];
+      const ids = [...new Set(lines.map((l) => l.productId))];
+      const rows = await tx
+        .select()
+        .from(products)
+        .where(inArray(products.id, ids))
+        .orderBy(asc(products.id))
+        .for("update");
+      const byId = new Map<string, Product>(rows.map((r): [string, Product] => [r.id, ProductMapper.toDomain(r)]));
+
+      for (const line of lines) byId.get(line.productId)?.release(line.quantity);
+      for (const product of byId.values()) await persistProduct(tx, product); // + ProductStockUpdated
+
+      await tx.update(stockReservations).set({ status: "RELEASED" }).where(eq(stockReservations.orderId, orderId));
+      const event = stockReleasedEvent.parse({
+        eventId: randomUUID(),
+        version: 1,
+        occurredAt: new Date().toISOString(),
+        aggregateId: orderId,
+        type: "StockReleased",
+        payload: { orderId, lines },
+      });
+      await enqueueOutbox(tx, TOPICS.CATALOG_INVENTORY, [event]);
+      return "RELEASED";
     });
   }
 }

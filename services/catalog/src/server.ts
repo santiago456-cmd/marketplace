@@ -7,6 +7,7 @@ import { createDb } from "./@shared/infrastructure/database/db.js";
 import { ReserveStockUseCase } from "./modules/products/application/use-cases/ReserveStockUseCase.js";
 import { OrderEventsConsumer } from "./modules/products/infrastructure/consumers/OrderEventsConsumer.js";
 import { DrizzleStockReservationRepository } from "./modules/products/infrastructure/persistence/DrizzleStockReservationRepository.js";
+import { ReleaseStockUseCase } from "./modules/products/application/use-cases/ReleaseStockUseCase.js";
 
 const logger = createLogger("catalog-service");
 const { db, close } = createDb(config.DATABASE_URL);
@@ -15,10 +16,12 @@ const kafka = createKafka("catalog-service", config.KAFKA_BROKERS.split(","));
 const producer = kafka.producer({ createPartitioner: Partitioners.DefaultPartitioner });
 const relay = new OutboxRelay(db, producer, logger, { pollMs: config.OUTBOX_POLL_MS });
 
+const reservations = new DrizzleStockReservationRepository(db);
 const consumer = new OrderEventsConsumer(
   kafka,
   config.KAFKA_GROUP_ID,
-  new ReserveStockUseCase(new DrizzleStockReservationRepository(db)),
+  new ReserveStockUseCase(reservations),
+  new ReleaseStockUseCase(reservations),
   logger,
 );
 

@@ -15,6 +15,7 @@ post()    { code -X POST $GW/products -H "authorization: Bearer $1" -H "$J" -d "
 status_of()   { curl -s $GW/orders/$1 -H "authorization: Bearer $2" | jq -r .status; }
 wait_status() { local s; for _ in $(seq 1 20); do s=$(status_of $1 $2); [ "$s" = "$3" ] && break; sleep 0.5; done; echo "$s"; }
 stock_of()    { curl -s $GW/products/$1 | jq -r .stock; }
+wait_stock() { local s; for _ in $(seq 1 20); do s=$(stock_of $1); [ "$s" = "$2" ] && break; sleep 0.5; done; echo "$s"; }
 mkprod() { # stock -> id de un producto publicado
   local pid
   pid=$(curl -s -X POST $GW/products -H "authorization: Bearer $TS" -H "$J" \
@@ -85,14 +86,22 @@ check "ver orden ajena 403" 403 "$(code $GW/orders/$OID -H "authorization: Beare
 echo "Saga: reserva de stock"
 P1=$(mkprod 5); P2=$(mkprod 1)
 O1=$(mkorder $TB "[{\"productId\":\"$P1\",\"quantity\":2}]")
-check "stock suficiente: orden confirmada" CONFIRMED "$(wait_status $O1 $TB CONFIRMED)"
+check "stock suficiente y pago aprobado: orden PAID" PAID "$(wait_status $O1 $TB PAID)"
 check "stock descontado en Catalog (5 - 2)" 3 "$(stock_of $P1)"
 O2=$(mkorder $TB "[{\"productId\":\"$P1\",\"quantity\":10}]")
 check "stock insuficiente: orden rechazada" REJECTED "$(wait_status $O2 $TB REJECTED)"
-check "el rechazo explica el motivo" true "$(curl -s $GW/orders/$O2 -H "authorization: Bearer $TB" | jq '.rejectionReason | startswith("Stock insuficiente")')"
+check "el rechazo explica el motivo" true "$(curl -s $GW/orders/$O2 -H "authorization: Bearer $TB" | jq '.statusReason | startswith("Stock insuficiente")')"
 check "un rechazo no descuenta stock" 3 "$(stock_of $P1)"
 O3=$(mkorder $TB "[{\"productId\":\"$P1\",\"quantity\":1},{\"productId\":\"$P2\",\"quantity\":5}]")
 check "todo o nada: orden mixta rechazada" REJECTED "$(wait_status $O3 $TB REJECTED)"
 check "todo o nada: el producto con stock queda intacto" 3 "$(stock_of $P1)"
+
+echo "Saga: pago y compensación"
+check "pago aprobado registra el paymentId" true "$(curl -s $GW/orders/$O1 -H "authorization: Bearer $TB" | jq '.paymentId | startswith("sim_")')"
+P3=$(mkprod 100)                                                   # 1.000.000 c/u; el límite del simulador es 50.000.000
+O4=$(mkorder $TB "[{\"productId\":\"$P3\",\"quantity\":60}]")      # total 60.000.000: supera el límite
+check "pago rechazado: orden cancelada" CANCELLED "$(wait_status $O4 $TB CANCELLED)"
+check "compensación: el stock vuelve a 100" 100 "$(wait_stock $P3 100)"
+check "la cancelación explica el motivo" true "$(curl -s $GW/orders/$O4 -H "authorization: Bearer $TB" | jq '.statusReason | startswith("Pago rechazado")')"
 echo; echo "$ok OK, $ko fallos"
 [ "$ko" -eq 0 ]

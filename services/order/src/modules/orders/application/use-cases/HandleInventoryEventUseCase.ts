@@ -8,6 +8,9 @@ export class HandleInventoryEventUseCase {
   constructor(private readonly orders: OrderRepository) {}
 
   async execute(event: InventoryEvent): Promise<void> {
+    // La liberación es la compensación de una cancelación que Order ya conoce: nada que aplicar.
+    if (event.type === "StockReleased") return;
+
     const orderId = event.payload.orderId;
     const order = await this.orders.findById(Id.from(orderId));
     if (!order) throw new OrderNotFoundException(orderId);

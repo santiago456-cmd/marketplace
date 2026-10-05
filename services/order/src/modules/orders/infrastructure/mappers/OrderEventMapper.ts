@@ -14,6 +14,9 @@ export function toIntegrationEvent(e: OrderDomainEvent): OrderEvent {
     case "OrderConfirmed":
       return orderEventSchema.parse({ ...base, payload: { orderId: e.orderId } });
     case "OrderRejected":
+    case "OrderCancelled":
       return orderEventSchema.parse({ ...base, payload: { orderId: e.orderId, reason: e.reason } });
+    case "OrderPaid":
+      return orderEventSchema.parse({ ...base, payload: { orderId: e.orderId, paymentId: e.paymentId } });
   }
 }

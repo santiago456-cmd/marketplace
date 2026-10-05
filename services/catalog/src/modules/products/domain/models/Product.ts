@@ -152,6 +152,21 @@ export class Product {
     this.updateStock(Stock.from(available - quantity)); // emite ProductStockUpdated
   }
 
+    /** Compensación de una reserva: devuelve stock aunque el producto ya esté archivado. */
+  release(quantity: number): void {
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      throw new ValidationException("La cantidad a liberar debe ser un entero >= 1");
+    }
+    this.props.stock = Stock.from(this.props.stock.value + quantity);
+    this.touch();
+    this.events.push({
+      type: "ProductStockUpdated",
+      occurredAt: nowIso(),
+      productId: this.id,
+      stock: this.props.stock.value,
+    });
+  }
+
   archive(): void {
     this.assertNotArchived();
     this.props.archivedAt = DateValue.now();

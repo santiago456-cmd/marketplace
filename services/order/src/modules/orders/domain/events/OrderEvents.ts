@@ -21,4 +21,6 @@ export type OrderDomainEvent =
       total: MoneySnapshot;
     }
   | { type: "OrderConfirmed"; occurredAt: string; orderId: string }
-  | { type: "OrderRejected"; occurredAt: string; orderId: string; reason: string };
+  | { type: "OrderRejected"; occurredAt: string; orderId: string; reason: string }
+  | { type: "OrderPaid"; occurredAt: string; orderId: string; paymentId: string }
+  | { type: "OrderCancelled"; occurredAt: string; orderId: string; reason: string };

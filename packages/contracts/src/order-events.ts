@@ -27,12 +27,25 @@ export const orderRejectedEvent = eventEnvelope(
   z.object({ orderId: z.string().uuid(), reason: z.string().min(1) }),
 );
 
+export const orderPaidEvent = eventEnvelope(
+  "OrderPaid",
+  z.object({ orderId: z.string().uuid(), paymentId: z.string().min(1) }),
+);
+
+export const orderCancelledEvent = eventEnvelope(
+  "OrderCancelled",
+  z.object({ orderId: z.string().uuid(), reason: z.string().min(1) }),
+);
+
 export const orderEventSchema = z.discriminatedUnion("type", [
   orderCreatedEvent,
   orderConfirmedEvent,
   orderRejectedEvent,
+  orderPaidEvent,
+  orderCancelledEvent,
 ]);
 
 export type OrderLine = z.infer<typeof orderLineSchema>;
 export type OrderCreatedEvent = z.infer<typeof orderCreatedEvent>;
+export type OrderCancelledEvent = z.infer<typeof orderCancelledEvent>;
 export type OrderEvent = z.infer<typeof orderEventSchema>;

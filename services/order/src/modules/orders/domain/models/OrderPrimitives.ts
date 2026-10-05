@@ -4,7 +4,9 @@ export interface OrderPrimitives {
   orderId: string;
   buyerId: string;
   status: string;
-  rejectionReason: string | null;
+  /** Motivo cuando la orden terminó en REJECTED o CANCELLED. */
+  statusReason: string | null;
+  paymentId: string | null;
   lines: OrderLineSnapshot[];
   total: MoneySnapshot;
   createdAt: string;
