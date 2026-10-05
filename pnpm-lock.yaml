@@ -46,6 +46,25 @@ importers:
         specifier: ^3.25.76
         version: 3.25.76
 
+  packages/outbox:
+    dependencies:
+      '@marketplace/common':
+        specifier: workspace:*
+        version: link:../common
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(pg@8.23.1)
+      kafkajs:
+        specifier: ^2.2.4
+        version: 2.2.4
+      pg:
+        specifier: ^8.23.1
+        version: 8.23.1
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
+
   services/catalog:
     dependencies:
       '@marketplace/common':
@@ -54,6 +73,9 @@ importers:
       '@marketplace/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@marketplace/outbox':
+        specifier: workspace:*
+        version: link:../../packages/outbox
       drizzle-orm:
         specifier: ^0.45.3
         version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(pg@8.23.1)
@@ -118,6 +140,40 @@ importers:
       jose:
         specifier: ^6.2.12
         version: 6.2.12
+      pg:
+        specifier: ^8.23.1
+        version: 8.23.1
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
+      drizzle-kit:
+        specifier: ^0.31.11
+        version: 0.31.11
+
+  services/order:
+    dependencies:
+      '@marketplace/common':
+        specifier: workspace:*
+        version: link:../../packages/common
+      '@marketplace/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@marketplace/outbox':
+        specifier: workspace:*
+        version: link:../../packages/outbox
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(pg@8.23.1)
+      fastify:
+        specifier: ^5.12.5
+        version: 5.12.5
+      kafkajs:
+        specifier: ^2.2.4
+        version: 2.2.4
       pg:
         specifier: ^8.23.1
         version: 8.23.1

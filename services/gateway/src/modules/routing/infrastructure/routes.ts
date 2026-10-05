@@ -7,6 +7,7 @@ interface Upstreams {
   identity: string;
   catalog: string;
   search: string;
+  order: string
 }
 
 const isRead = (req: FastifyRequest) => ["GET", "HEAD", "OPTIONS"].includes(req.method);
@@ -36,6 +37,15 @@ export const gatewayRoutes = (verifier: JwtVerifier, upstreams: Upstreams) => as
     prefix: "/products",
     rewritePrefix: "/products",
     preHandler: authHook(verifier, { isPublic: isRead, roles: ["SELLER"] }),
+  });
+
+  // Órdenes: exige estar autenticado con rol BUYER.
+  // El dueño de la orden lo valida el propio Order.
+  await app.register(httpProxy, {
+    upstream: upstreams.order,
+    prefix: "/orders",
+    rewritePrefix: "/orders",
+    preHandler: authHook(verifier, { roles: ["BUYER"] }),
   });
 
   // Búsqueda: pública.

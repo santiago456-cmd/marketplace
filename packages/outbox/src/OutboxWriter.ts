@@ -1,4 +1,4 @@
-import type { Tx } from "../database/db.js";
+import type { Tx } from "./types.js";
 import { outbox } from "./outbox.schema.js";
 
 interface EnvelopeLike {

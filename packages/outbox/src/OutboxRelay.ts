@@ -1,7 +1,7 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import { asc, inArray, isNull } from "drizzle-orm";
 import type { Producer } from "kafkajs";
-import type { Db } from "../database/db.js";
+import type { Db } from "./types.js";
 import type { Logger } from "@marketplace/common";
 import { outbox } from "./outbox.schema.js";
 

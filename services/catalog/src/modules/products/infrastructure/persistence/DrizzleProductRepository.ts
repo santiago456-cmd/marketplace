@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { ConflictException } from "@marketplace/common";
 import type { Id } from "@marketplace/common";
 import type { Db } from "../../../../@shared/infrastructure/database/db.js";
-import { enqueueOutbox } from "../../../../@shared/infrastructure/outbox/OutboxWriter.js";
+import { enqueueOutbox } from "@marketplace/outbox";
 import type { Product } from "../../domain/models/Product.js";
 import type { ProductRepository } from "../../domain/repositories/ProductRepository.js";
 import { toIntegrationEvent } from "../mappers/ProductEventMapper.js";

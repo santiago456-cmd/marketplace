@@ -6,8 +6,7 @@ import { gatewayRoutes } from "./modules/routing/infrastructure/routes.js";
 interface Deps {
   logger: Logger;
   jwtSecret: string;
-  upstreams: { identity: string; catalog: string; search: string };
-}
+  upstreams: { identity: string; catalog: string; search: string; order: string };}
 
 export function buildApp(deps: Deps): FastifyInstance {
   const app = Fastify({ loggerInstance: deps.logger });

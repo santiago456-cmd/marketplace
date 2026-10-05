@@ -11,6 +11,7 @@
     "dev:search": "pnpm --filter @marketplace/search-service dev",
     "dev:identity": "pnpm --filter @marketplace/identity-service dev",
     "dev:gateway": "pnpm --filter @marketplace/gateway dev",
+    "dev:order": "pnpm --filter @marketplace/order-service dev",
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
     "infra:reset": "docker compose down -v",

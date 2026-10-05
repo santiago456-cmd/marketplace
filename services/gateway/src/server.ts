@@ -7,7 +7,12 @@ const logger = createLogger("gateway");
 const app = buildApp({
   logger,
   jwtSecret: config.JWT_SECRET,
-  upstreams: { identity: config.IDENTITY_URL, catalog: config.CATALOG_URL, search: config.SEARCH_URL },
+  upstreams: {
+    identity: config.IDENTITY_URL,
+    catalog: config.CATALOG_URL,
+    search: config.SEARCH_URL,
+    order: config.ORDER_URL,
+  },
 });
 
 await app.listen({ port: config.PORT, host: "0.0.0.0" });

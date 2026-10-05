@@ -1,5 +1,5 @@
 {
-  "name": "@marketplace/catalog-service",
+  "name": "@marketplace/order-service",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -21,7 +21,6 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^26.6.4",
     "@types/pg": "^8.23.1",
     "drizzle-kit": "^0.31.11"
   }
