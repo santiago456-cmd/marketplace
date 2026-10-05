@@ -1,17 +1,19 @@
 import { randomUUID } from "node:crypto";
-import { type OrderCreatedEvent, orderCreatedEvent } from "@marketplace/contracts";
+import { type OrderEvent, orderEventSchema } from "@marketplace/contracts";
 import type { OrderDomainEvent } from "../../domain/events/OrderEvents.js";
 
-export function toIntegrationEvent(e: OrderDomainEvent): OrderCreatedEvent {
-  const base = { eventId: randomUUID(), version: 1, occurredAt: e.occurredAt };
+export function toIntegrationEvent(e: OrderDomainEvent): OrderEvent {
+  const base = { eventId: randomUUID(), version: 1, occurredAt: e.occurredAt, aggregateId: e.orderId, type: e.type };
 
   switch (e.type) {
     case "OrderCreated":
-      return orderCreatedEvent.parse({
+      return orderEventSchema.parse({
         ...base,
-        type: e.type,
-        aggregateId: e.orderId,
         payload: { orderId: e.orderId, buyerId: e.buyerId, lines: e.lines, total: e.total },
       });
+    case "OrderConfirmed":
+      return orderEventSchema.parse({ ...base, payload: { orderId: e.orderId } });
+    case "OrderRejected":
+      return orderEventSchema.parse({ ...base, payload: { orderId: e.orderId, reason: e.reason } });
   }
 }

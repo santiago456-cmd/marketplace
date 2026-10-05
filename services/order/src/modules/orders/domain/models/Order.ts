@@ -14,6 +14,7 @@ interface OrderState {
   lines: OrderLine[];
   total: Money;
   status: OrderStatus;
+  rejectionReason: string | null;
   createdAt: DateValue;
 }
 
@@ -72,6 +73,26 @@ export class Order {
     if (!this.state.buyerId.equals(Id.from(userId))) throw new OrderNotOwnedException(this.id);
   }
 
+  /** El stock quedó reservado. Idempotente: confirmar una orden ya confirmada no hace nada. */
+  confirm(): void {
+    if (this.state.status === "CONFIRMED") return;
+    if (this.state.status !== "CREATED") {
+      throw new BusinessRuleException(`No se puede confirmar una orden en estado ${this.state.status}`);
+    }
+    this.record({ type: "OrderConfirmed", occurredAt: DateValue.now().toISOString(), orderId: this.id });
+  }
+
+  /** No hubo stock. Idempotente: rechazar una orden ya rechazada no hace nada. */
+  reject(reason: string): void {
+    if (this.state.status === "REJECTED") return;
+    if (this.state.status !== "CREATED") {
+      throw new BusinessRuleException(`No se puede rechazar una orden en estado ${this.state.status}`);
+    }
+    const trimmed = reason.trim();
+    if (!trimmed) throw new ValidationException("El motivo del rechazo es obligatorio");
+    this.record({ type: "OrderRejected", occurredAt: DateValue.now().toISOString(), orderId: this.id, reason: trimmed });
+  }
+
   pullEvents(): OrderDomainEvent[] {
     const pending = this.pending;
     this.pending = [];
@@ -84,6 +105,7 @@ export class Order {
       orderId: s.id.value,
       buyerId: s.buyerId.value,
       status: s.status,
+      rejectionReason: s.rejectionReason,
       lines: s.lines.map((l) => l.toSnapshot()),
       total: s.total.toPrimitives(),
       createdAt: s.createdAt.toISOString(),
@@ -106,8 +128,15 @@ export class Order {
           lines: event.lines.map((l) => OrderLine.from(l)),
           total: Money.from(event.total.amount, event.total.currency),
           status: "CREATED",
+          rejectionReason: null,
           createdAt: DateValue.from(event.occurredAt),
         };
+        break;
+      case "OrderConfirmed":
+        this.state = { ...this.state, status: "CONFIRMED" };
+        break;
+      case "OrderRejected":
+        this.state = { ...this.state, status: "REJECTED", rejectionReason: event.reason };
         break;
     }
     this.history.push(event);

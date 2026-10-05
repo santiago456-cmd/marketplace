@@ -12,6 +12,7 @@ import { type PublicationStatus, parsePublicationStatus } from "../value-objects
 import { Stock } from "../value-objects/Stock.vo.js";
 import type { ProductPrimitives, ProductSnapshot } from "./ProductPrimitives.js";
 import { ProductNotOwnedException } from "../exceptions/ProductNotOwnedException.js";
+import { InsufficientStockException } from "../exceptions/InsufficientStockException.js";
 
 interface ProductProps {
   id: Id;
@@ -136,6 +137,19 @@ export class Product {
     this.props.stock = stock;
     this.touch();
     this.events.push({ type: "ProductStockUpdated", occurredAt: nowIso(), productId: this.id, stock: stock.value });
+  }
+
+  /** Descuenta stock para una orden. Falla si el producto no está activo o no alcanza el stock. */
+  reserve(quantity: number): void {
+    this.assertNotArchived();
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      throw new ValidationException("La cantidad a reservar debe ser un entero >= 1");
+    }
+    if (this.props.status !== "ACTIVE") throw new BusinessRuleException("El producto no está disponible para la compra");
+
+    const available = this.props.stock.value;
+    if (available < quantity) throw new InsufficientStockException(this.id, quantity, available);
+    this.updateStock(Stock.from(available - quantity)); // emite ProductStockUpdated
   }
 
   archive(): void {

@@ -12,6 +12,19 @@ code()    { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 regcode() { code -X POST $GW/auth/register -H "$J" -d "{\"email\":\"$1\",\"password\":\"$3\",\"roles\":[\"$2\"]}"; }
 login()   { curl -s -X POST $GW/auth/login -H "$J" -d "{\"email\":\"$1\",\"password\":\"Secreta123\"}" | jq -r .accessToken; }
 post()    { code -X POST $GW/products -H "authorization: Bearer $1" -H "$J" -d "$2"; }
+status_of()   { curl -s $GW/orders/$1 -H "authorization: Bearer $2" | jq -r .status; }
+wait_status() { local s; for _ in $(seq 1 20); do s=$(status_of $1 $2); [ "$s" = "$3" ] && break; sleep 0.5; done; echo "$s"; }
+stock_of()    { curl -s $GW/products/$1 | jq -r .stock; }
+mkprod() { # stock -> id de un producto publicado
+  local pid
+  pid=$(curl -s -X POST $GW/products -H "authorization: Bearer $TS" -H "$J" \
+    -d "{\"name\":\"Producto $RUN\",\"categoryId\":\"deportes\",\"price\":{\"amount\":1000000,\"currency\":\"ARS\"},\"stock\":$1,\"condition\":\"NEW\"}" | jq -r .productId)
+  curl -s -o /dev/null -X POST $GW/products/$pid/publish -H "authorization: Bearer $TS"
+  echo $pid
+}
+mkorder() { # token, líneas en JSON -> orderId
+  curl -s -X POST $GW/orders -H "authorization: Bearer $1" -H "$J" -d "{\"lines\":$2}" | jq -r .orderId
+}
 
 echo "Identity"
 check "registro 201" 201 "$(regcode v1-$RUN@test.com SELLER Secreta123)"
@@ -65,9 +78,21 @@ check "producto en borrador 422" 422 "$(opost $TB "{\"lines\":[{\"productId\":\"
 check "comprar producto propio 422" 422 "$(opost $TD "{\"lines\":[{\"productId\":\"$IDD\",\"quantity\":1}]}")"
 OID=$(curl -s -X POST $GW/orders -H "authorization: Bearer $TB" -H "$J" -d "$OPAYLOAD" | jq -r .orderId)
 check "comprador crea la orden" true "$([ -n "$OID" ] && [ "$OID" != null ] && echo true || echo false)"
-check "estado inicial CREATED" CREATED "$(curl -s $GW/orders/$OID -H "authorization: Bearer $TB" | jq -r .status)"
+check "stock insuficiente rechaza la orden (stock 1, cantidad 2)" REJECTED "$(wait_status $OID $TB REJECTED)"
 check "ver orden propia 200" 200 "$(code $GW/orders/$OID -H "authorization: Bearer $TB")"
 check "ver orden ajena 403" 403 "$(code $GW/orders/$OID -H "authorization: Bearer $TB2")"
 
+echo "Saga: reserva de stock"
+P1=$(mkprod 5); P2=$(mkprod 1)
+O1=$(mkorder $TB "[{\"productId\":\"$P1\",\"quantity\":2}]")
+check "stock suficiente: orden confirmada" CONFIRMED "$(wait_status $O1 $TB CONFIRMED)"
+check "stock descontado en Catalog (5 - 2)" 3 "$(stock_of $P1)"
+O2=$(mkorder $TB "[{\"productId\":\"$P1\",\"quantity\":10}]")
+check "stock insuficiente: orden rechazada" REJECTED "$(wait_status $O2 $TB REJECTED)"
+check "el rechazo explica el motivo" true "$(curl -s $GW/orders/$O2 -H "authorization: Bearer $TB" | jq '.rejectionReason | startswith("Stock insuficiente")')"
+check "un rechazo no descuenta stock" 3 "$(stock_of $P1)"
+O3=$(mkorder $TB "[{\"productId\":\"$P1\",\"quantity\":1},{\"productId\":\"$P2\",\"quantity\":5}]")
+check "todo o nada: orden mixta rechazada" REJECTED "$(wait_status $O3 $TB REJECTED)"
+check "todo o nada: el producto con stock queda intacto" 3 "$(stock_of $P1)"
 echo; echo "$ok OK, $ko fallos"
 [ "$ko" -eq 0 ]

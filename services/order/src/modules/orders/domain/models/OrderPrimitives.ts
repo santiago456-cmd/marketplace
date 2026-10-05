@@ -4,6 +4,7 @@ export interface OrderPrimitives {
   orderId: string;
   buyerId: string;
   status: string;
+  rejectionReason: string | null;
   lines: OrderLineSnapshot[];
   total: MoneySnapshot;
   createdAt: string;
